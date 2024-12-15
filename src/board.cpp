@@ -59,11 +59,18 @@ void displayBoard(const vector<vector<Piece>>& board) {
 }
 
 // 기물 이동 처리 함수
-void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vector<bool>& activePlayers) {
+void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vector<bool>& activePlayers, vector<vector<Piece>>& capturedPieces, int currentPlayer) {
+    if (board[dy][dx].owner != NONE && board[dy][dx].owner != currentPlayer) {
+        // 상대방 말을 잡은 경우, 잡은 말 리스트에 추가
+        capturedPieces[currentPlayer].push_back(board[dy][dx]);
+    }
+
     if (board[dy][dx].type == KING) {
         // 킹이 제거되면 해당 플레이어를 비활성화
         activePlayers[board[dy][dx].owner] = false;
     }
+
+    // 이동 처리
     board[dy][dx] = board[sy][sx];
     board[sy][sx] = { EMPTY, NONE };
 }

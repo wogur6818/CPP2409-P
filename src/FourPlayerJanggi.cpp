@@ -2,6 +2,7 @@
 #include <vector>
 #include "board.h"
 #include "game_logic.h"
+#include "utils.h"
 using namespace std;
 
 int main() {
@@ -10,6 +11,9 @@ int main() {
 
     // 플레이어 상태: 활성화 여부
     vector<bool> activePlayers(5, true); // 1~4 플레이어 활성화
+
+    // 잡은 말 저장
+    vector<vector<Piece>> capturedPieces(5); // 각 플레이어별로 잡은 말 저장
 
     int currentPlayer = PLAYER1;
 
@@ -24,7 +28,65 @@ int main() {
         displayBoard(board);
         cout << "현재 플레이어: P" << currentPlayer << endl;
 
-        // 기물 선택
+        // 턴 선택
+        int actionChoice;
+        cout << "1: 말을 움직인다, 2: 잡은 말을 배치한다: ";
+        cin >> actionChoice;
+
+        if (actionChoice == 2) {
+            // 잡은 말 배치
+            if (capturedPieces[currentPlayer].empty()) {
+                cout << "잡은 말이 없습니다. 다시 선택하세요." << endl;
+                continue;
+            }
+
+            // 잡은 말 리스트 출력
+            cout << "잡은 말 리스트:" << endl;
+            for (size_t i = 0; i < capturedPieces[currentPlayer].size(); ++i) {
+                cout << i + 1 << ": " << pieceTypeToString(capturedPieces[currentPlayer][i].type) << endl;
+            }
+
+            // 배치할 말 선택
+            int pieceIndex;
+            cout << "배치할 말을 선택하세요: ";
+            cin >> pieceIndex;
+
+            if (pieceIndex < 1 || pieceIndex > capturedPieces[currentPlayer].size()) {
+                cout << "잘못된 선택입니다. 다시 선택하세요." << endl;
+                continue;
+            }
+
+            Piece selectedPiece = capturedPieces[currentPlayer][pieceIndex - 1];
+
+            // 배치할 위치 입력
+            int bx, by;
+            while (true) {
+                cout << "배치할 위치를 입력하세요 (x y): ";
+                cin >> bx >> by;
+
+                if (bx < 0 || bx >= BOARD_SIZE || by < 0 || by >= BOARD_SIZE || board[by][bx].owner != NONE) {
+                    cout << "잘못된 위치입니다. 빈칸에만 배치할 수 있습니다." << endl;
+                } else {
+                    break;
+                }
+            }
+
+            // 말 배치
+            board[by][bx] = selectedPiece;
+            capturedPieces[currentPlayer].erase(capturedPieces[currentPlayer].begin() + (pieceIndex - 1));
+            cout << "말을 (" << bx << ", " << by << ")에 배치했습니다." << endl;
+
+            // 다음 턴으로
+            currentPlayer = (currentPlayer % 4) + 1;
+            continue;
+        }
+
+        if (actionChoice != 1) {
+            cout << "잘못된 선택입니다. 다시 입력하세요." << endl;
+            continue;
+        }
+
+        // 기존 말 이동
         int pieceChoice;
         cout << "이동할 기물을 선택하세요 (1: king, 2: bishop, 3: rook): ";
         cin >> pieceChoice;
@@ -96,7 +158,7 @@ int main() {
         }
 
         // 이동 처리
-        movePiece(board, sx, sy, dx, dy, activePlayers);
+        movePiece(board, sx, sy, dx, dy, activePlayers, capturedPieces, currentPlayer);
 
         // 승리 조건 확인
         Player winner = checkWinner(board, activePlayers);

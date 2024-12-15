@@ -19,6 +19,6 @@ const int BOARD_SIZE = 5;
 // 함수 선언
 vector<vector<Piece>> initializeBoard();
 void displayBoard(const vector<vector<Piece>>& board);
-void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vector<bool>& activePlayers);
+void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vector<bool>& activePlayers, vector<vector<Piece>>& capturedPieces, int currentPlayer);
 
 #endif
