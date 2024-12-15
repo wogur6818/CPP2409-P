@@ -5,36 +5,40 @@
 #include "utils.h"
 using namespace std;
 
+void printCapturedPieces(const vector<vector<Piece>>& capturedPieces) {
+    for (size_t player = 1; player < capturedPieces.size(); ++player) {
+        cout << "P" << player << "의 잡은 말: ";
+        for (const auto& piece : capturedPieces[player]) {
+            cout << pieceTypeToString(piece.type) << " ";
+        }
+        cout << endl;
+    }
+}
+
 int main() {
-    // 보드 초기화
     vector<vector<Piece>> board = initializeBoard();
-
-    // 플레이어 상태: 활성화 여부
-    vector<bool> activePlayers(5, true); // 1~4 플레이어 활성화
-
-    // 잡은 말 저장
-    vector<vector<Piece>> capturedPieces(5); // 각 플레이어별로 잡은 말 저장
+    vector<bool> activePlayers(5, true);
+    vector<vector<Piece>> capturedPieces(5); // 각 플레이어별 잡은 말 저장
 
     int currentPlayer = PLAYER1;
 
     while (true) {
-        // 현재 플레이어가 활성화되지 않았다면 다음 플레이어로 이동
         if (!activePlayers[currentPlayer]) {
             currentPlayer = (currentPlayer % 4) + 1;
             continue;
         }
 
-        // 현재 보드 출력
         displayBoard(board);
+        printCapturedPieces(capturedPieces);
+
         cout << "현재 플레이어: P" << currentPlayer << endl;
 
-        // 턴 선택
         int actionChoice;
         cout << "1: 말을 움직인다, 2: 잡은 말을 배치한다: ";
         cin >> actionChoice;
 
         if (actionChoice == 2) {
-            // 잡은 말 배치
+            // 잡은 말이 없는 경우 처리
             if (capturedPieces[currentPlayer].empty()) {
                 cout << "잡은 말이 없습니다. 다시 선택하세요." << endl;
                 continue;
@@ -46,7 +50,6 @@ int main() {
                 cout << i + 1 << ": " << pieceTypeToString(capturedPieces[currentPlayer][i].type) << endl;
             }
 
-            // 배치할 말 선택
             int pieceIndex;
             cout << "배치할 말을 선택하세요: ";
             cin >> pieceIndex;
@@ -58,25 +61,56 @@ int main() {
 
             Piece selectedPiece = capturedPieces[currentPlayer][pieceIndex - 1];
 
-            // 배치할 위치 입력
-            int bx, by;
-            while (true) {
-                cout << "배치할 위치를 입력하세요 (x y): ";
-                cin >> bx >> by;
+            // 플레이어별 배치 가능한 위치 설정
+            vector<pair<int, int>> validPositions;
+            if (currentPlayer == PLAYER1) {
+                validPositions = {{0, 4}, {1, 4}, {0, 3}, {1, 3}};
+            } else if (currentPlayer == PLAYER2) {
+                validPositions = {{3, 4}, {4, 4}, {3, 3}, {4, 3}};
+            } else if (currentPlayer == PLAYER3) {
+                validPositions = {{3, 0}, {4, 0}, {3, 1}, {4, 1}};
+            } else if (currentPlayer == PLAYER4) {
+                validPositions = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
+            }
 
-                if (bx < 0 || bx >= BOARD_SIZE || by < 0 || by >= BOARD_SIZE || board[by][bx].owner != NONE) {
-                    cout << "잘못된 위치입니다. 빈칸에만 배치할 수 있습니다." << endl;
-                } else {
-                    break;
+            // 빈칸 필터링
+            vector<pair<int, int>> filteredPositions;
+            for (const auto& pos : validPositions) {
+                int x = pos.first;
+                int y = pos.second;
+                if (board[y][x].owner == NONE) {
+                    filteredPositions.push_back(pos);
                 }
             }
 
-            // 말 배치
+            if (filteredPositions.empty()) {
+                cout << "배치 가능한 위치가 없습니다. 다시 선택하세요." << endl;
+                continue;
+            }
+
+            // 유효한 위치 출력
+            cout << "배치할 위치를 선택하세요:" << endl;
+            for (size_t i = 0; i < filteredPositions.size(); ++i) {
+                cout << i + 1 << ": 좌표 (" << filteredPositions[i].first << ", " << filteredPositions[i].second << ")" << endl;
+            }
+
+            int positionChoice;
+            cin >> positionChoice;
+
+            if (positionChoice < 1 || positionChoice > filteredPositions.size()) {
+                cout << "잘못된 선택입니다. 다시 선택하세요." << endl;
+                continue;
+            }
+
+            // 선택된 위치에 말 배치
+            int bx = filteredPositions[positionChoice - 1].first;
+            int by = filteredPositions[positionChoice - 1].second;
             board[by][bx] = selectedPiece;
+
+            // 잡은 말 리스트에서 제거
             capturedPieces[currentPlayer].erase(capturedPieces[currentPlayer].begin() + (pieceIndex - 1));
             cout << "말을 (" << bx << ", " << by << ")에 배치했습니다." << endl;
 
-            // 다음 턴으로
             currentPlayer = (currentPlayer % 4) + 1;
             continue;
         }
@@ -86,7 +120,7 @@ int main() {
             continue;
         }
 
-        // 기존 말 이동
+        // 기존 말 이동 로직 (생략)
         int pieceChoice;
         cout << "이동할 기물을 선택하세요 (1: king, 2: bishop, 3: rook): ";
         cin >> pieceChoice;
@@ -101,7 +135,6 @@ int main() {
                 continue;
         }
 
-        // 선택한 기물의 위치 찾기
         int sx = -1, sy = -1;
         bool pieceFound = false;
         for (int y = 0; y < BOARD_SIZE; y++) {
@@ -121,7 +154,7 @@ int main() {
             continue;
         }
 
-        cout << "선택한 기물 위치: (" << (4 - sy) << ", " << sx << ")" << endl;
+        cout << "선택한 기물 위치: (" << sy << ", " << sx << ")" << endl;
 
         // 이동 방향 입력
         int moveDirection;
@@ -135,7 +168,6 @@ int main() {
         }
         cin >> moveDirection;
 
-        // 목표 위치 계산
         int dx = sx, dy = sy;
         switch (moveDirection) {
             case 1: dy++; break; // 위
@@ -151,23 +183,19 @@ int main() {
                 continue;
         }
 
-        // 이동 가능성 확인
         if (!isValidMove(board, sx, sy, dx, dy, selectedType, static_cast<Player>(currentPlayer))) {
             cout << "잘못된 이동입니다. 다시 시도하세요." << endl;
             continue;
         }
 
-        // 이동 처리
         movePiece(board, sx, sy, dx, dy, activePlayers, capturedPieces, currentPlayer);
 
-        // 승리 조건 확인
         Player winner = checkWinner(board, activePlayers);
         if (winner != NONE) {
             cout << "플레이어 P" << winner << "가 승리했습니다!" << endl;
             break;
         }
 
-        // 다음 플레이어로 이동
         currentPlayer = (currentPlayer % 4) + 1;
     }
 
