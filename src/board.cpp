@@ -5,24 +5,24 @@ using namespace std;
 
 // 보드 초기화 함수
 vector<vector<Piece>> initializeBoard() {
-    vector<vector<Piece>> board(BOARD_SIZE, vector<Piece>(BOARD_SIZE, { EMPTY, NONE }));
+    vector<vector<Piece>> board(BOARD_SIZE, vector<Piece>(BOARD_SIZE, { EMPTY, NONE, 0 }));
 
     // 초기 배치
-    board[4][0] = { KING, PLAYER1 };
-    board[4][1] = { BISHOP, PLAYER1 };
-    board[3][0] = { ROOK, PLAYER1 };
+    board[4][0] = { KING, PLAYER1, 1 };
+    board[4][1] = { BISHOP, PLAYER1, 1 };
+    board[3][0] = { ROOK, PLAYER1, 1 };
 
-    board[4][4] = { KING, PLAYER2 };
-    board[4][3] = { BISHOP, PLAYER2 };
-    board[3][4] = { ROOK, PLAYER2 };
+    board[4][4] = { KING, PLAYER2, 1 };
+    board[4][3] = { BISHOP, PLAYER2, 1 };
+    board[3][4] = { ROOK, PLAYER2, 1 };
 
-    board[0][4] = { KING, PLAYER3 };
-    board[0][3] = { BISHOP, PLAYER3 };
-    board[1][4] = { ROOK, PLAYER3 };
+    board[0][4] = { KING, PLAYER3, 1 };
+    board[0][3] = { BISHOP, PLAYER3, 1 };
+    board[1][4] = { ROOK, PLAYER3, 1 };
 
-    board[0][0] = { KING, PLAYER4 };
-    board[0][1] = { BISHOP, PLAYER4 };
-    board[1][0] = { ROOK, PLAYER4 };
+    board[0][0] = { KING, PLAYER4, 1 };
+    board[0][1] = { BISHOP, PLAYER4, 1 };
+    board[1][0] = { ROOK, PLAYER4, 1 };
 
     return board;
 }
@@ -40,14 +40,14 @@ void displayBoard(const vector<vector<Piece>>& board) {
             if (piece.owner == NONE) {
                 cout << setw(12) << "빈칸" << " |";
             } else {
-                string owner = "P" + to_string(piece.owner) + "_";
+                string pieceName = "P" + to_string(piece.owner) + "_";
                 switch (piece.type) {
-                    case KING: owner += "king"; break;
-                    case BISHOP: owner += "bishop"; break;
-                    case ROOK: owner += "rook"; break;
-                    default: owner += "unknown";
+                    case KING: pieceName += "king"; break;
+                    case BISHOP: pieceName += "bishop_" + to_string(piece.id); break;
+                    case ROOK: pieceName += "rook_" + to_string(piece.id); break;
+                    default: break;
                 }
-                cout << setw(12) << owner << " |";
+                cout << setw(12) << pieceName << " |";
             }
         }
         cout << endl;
@@ -60,7 +60,8 @@ void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vec
     if (board[dy][dx].owner != NONE && board[dy][dx].owner != currentPlayer) {
         capturedPieces[currentPlayer].push_back(board[dy][dx]); // 잡은 말 저장
         cout << "P" << currentPlayer << "이 P" << board[dy][dx].owner << "의 말을 잡았습니다: "
-             << (board[dy][dx].type == KING ? "KING" : board[dy][dx].type == BISHOP ? "BISHOP" : "ROOK") << endl;
+             << (board[dy][dx].type == KING ? "KING" : board[dy][dx].type == BISHOP ? "BISHOP" : "ROOK")
+             << "_" << board[dy][dx].id << endl;
     }
 
     if (board[dy][dx].type == KING) {
@@ -69,5 +70,5 @@ void movePiece(vector<vector<Piece>>& board, int sx, int sy, int dx, int dy, vec
     }
 
     board[dy][dx] = board[sy][sx];
-    board[sy][sx] = { EMPTY, NONE };
+    board[sy][sx] = { EMPTY, NONE, 0 };
 }

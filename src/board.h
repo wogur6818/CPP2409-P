@@ -12,6 +12,7 @@ enum Player { NONE, PLAYER1, PLAYER2, PLAYER3, PLAYER4 };
 struct Piece {
     PieceType type;
     Player owner;
+    int id; // 고유 ID
 };
 
 const int BOARD_SIZE = 5;
